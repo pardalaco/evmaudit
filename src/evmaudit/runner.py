@@ -45,21 +45,11 @@ def run_mythril(contract_path: str, timeout: int = 120, depth: int = 22) -> Dict
         if "timeout" in result.stderr.lower():
             status = "timeout"
 
-        return {
-            "success": True,
-            "tool": "mythril",
-            "status": status,
-            "raw": raw_output
-        }
+        return raw_output
 
     except subprocess.TimeoutExpired:
         # El subproceso de Python mató a Mythril porque superó el tiempo físico
-        return {
-            "success": False,
-            "tool": "mythril",
-            "status": "timeout",
-            "raw": {}  # No hay JSON parcial disponible si el proceso fue forzado a morir
-        }
+        raise AnalysisError(f"Mythril excedió el tiempo límite de ejecución de {timeout} segundos y fue terminado.")
         
     except FileNotFoundError:
         # Si 'myth' no está instalado en el PATH del sistema operativo
