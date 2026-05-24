@@ -1,5 +1,6 @@
 import subprocess
 import json
+from pathlib import Path
 from typing import Dict, Any
 from evmaudit.exceptions import ToolNotFoundError, AnalysisError
 
@@ -58,3 +59,60 @@ def run_mythril(contract_path: str, timeout: int = 120, depth: int = 22) -> Dict
     except json.JSONDecodeError:
         # En caso de que la salida de stdout no sea un JSON válido debido a un crash intermedio
         raise AnalysisError(f"No se pudo parsear la salida de Mythril. Stderr: {result.stderr}")
+
+
+def run_slither(contract_path: str, timeout: int = 60) -> dict:
+    contract = Path(contract_path)
+
+    if not contract.exists():
+        raise AnalysisError(f"No existe el contrato: {contract_path}")
+
+    try:
+        subprocess.run(
+            ["slither", "--version"],
+            capture_output=True,
+            text=True,
+            check=True,
+            timeout=10,
+        )
+    except FileNotFoundError:
+        raise ToolNotFoundError("Slither no está instalado o no está en el PATH.")
+    except subprocess.SubprocessError as e:
+        raise ToolNotFoundError(f"No se pudo ejecutar Slither: {e}")
+
+    cmd = [
+        "slither",
+        str(contract),
+        "--json",
+        "-",
+    ]
+
+    try:
+        proc = subprocess.run(
+            cmd,
+            capture_output=True,
+            text=True,
+            timeout=timeout,
+        )
+    except subprocess.TimeoutExpired:
+        raise AnalysisError(f"Timeout ejecutando Slither sobre {contract_path}")
+
+    stdout = proc.stdout.strip()
+    stderr = proc.stderr.strip()
+
+    if not stdout:
+        raise AnalysisError(f"Slither no devolvió JSON. STDERR: {stderr}")
+
+    try:
+        raw_json = json.loads(stdout)
+    except json.JSONDecodeError as e:
+        raise AnalysisError(f"No se pudo parsear JSON de Slither: {e}\nSTDERR: {stderr}")
+
+    return {
+        "tool": "slither",
+        "contract_path": str(contract),
+        "success": proc.returncode in [0, 255],
+        "returncode": proc.returncode,
+        "raw": raw_json,
+        "stderr": stderr,
+    }
