@@ -1,10 +1,50 @@
 import os
+import re
 import subprocess
 import sys
 import json
 from pathlib import Path
 from typing import Dict, Any
 from evmaudit.exceptions import ToolNotFoundError, AnalysisError
+
+
+def _set_solc_version(contract_path: str) -> str | None:
+    """
+    Detecta la versión de Solidity del pragma del contrato y configura
+    solc-select para usarla antes de ejecutar cualquier herramienta de análisis.
+
+    Soporta:
+      pragma solidity ^0.8.0;       → usa 0.8.0
+      pragma solidity >=0.7.0;      → usa 0.7.0 (versión mínima del rango)
+      pragma solidity 0.8.20;       → usa 0.8.20 (versión exacta)
+
+    Devuelve la versión instalada, o None si no se encuentra pragma.
+    """
+    try:
+        code = Path(contract_path).read_text()
+    except FileNotFoundError:
+        return None
+
+    match = re.search(r'pragma solidity\s+[\^>=<~]*(\d+\.\d+\.\d+)', code)
+    if not match:
+        return None
+
+    version = match.group(1)
+
+    try:
+        subprocess.run(
+            ["solc-select", "install", version],
+            capture_output=True, text=True, env=_env()
+        )
+        subprocess.run(
+            ["solc-select", "use", version],
+            capture_output=True, text=True, check=True, env=_env()
+        )
+        print(f"  [solc] versión configurada: {version}")
+    except (FileNotFoundError, subprocess.CalledProcessError):
+        print(f"  [solc] aviso: no se pudo configurar solc {version}, usando la versión actual")
+
+    return version
 
 
 def _env() -> dict:
@@ -46,6 +86,8 @@ def run_mythril(
 
     Guarda el resultado en: jsons/{contrato}/{contrato}_mythril.json
     """
+    _set_solc_version(contract_path)
+
     command = [
         "myth", "analyze",
         contract_path,
@@ -98,6 +140,8 @@ def run_slither(
 
     if not contract.exists():
         raise AnalysisError(f"No existe el contrato: {contract_path}")
+
+    _set_solc_version(contract_path)
 
     # Verificamos que Slither está instalado antes de intentar el análisis
     try:
