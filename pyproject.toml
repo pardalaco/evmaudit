@@ -5,6 +5,8 @@ description = "Add your description here"
 readme = "README.md"
 authors = [
     { name = "Daniel Rovira Martínez", email = "pardalaco@gmail.com" }
+    { name = "Paula Suárez Prieto", email = "Paula Suárez Prieto" }
+    { name = "Adrián Moreno Martín", email = "adrimore2@gmail.com" }
 ]
 requires-python = ">=3.12"
 dependencies = [
