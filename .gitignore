@@ -9,3 +9,5 @@ docs-TFM-UNIR/.obsidian
 __pycache__/
 *.pyc
 .venv*/
+src/evmaudit/jsons/*
+src/evmaudit/crytic-export/*
