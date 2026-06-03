@@ -191,18 +191,10 @@ def run_slither(
     except json.JSONDecodeError as e:
         raise AnalysisError(f"No se pudo parsear JSON de Slither: {e}\nSTDERR: {stderr}")
 
-    result = {
-        "tool": "slither",
-        "contract_path": str(contract),
-        "success": proc.returncode in [0, 255],
-        "returncode": proc.returncode,
-        "raw": raw_json,
-        "stderr": stderr,
-    }
 
-    _save_json(result, contract_path, "slither")
+    _save_json(raw_json, contract_path, "slither")
 
-    return result
+    return raw_json
 
 
 def run_echidna(
