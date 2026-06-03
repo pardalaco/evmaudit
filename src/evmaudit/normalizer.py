@@ -230,9 +230,9 @@ def normalize_slither_output(raw_output: dict) -> dict:
     }
 
     if not raw_output or not raw_output.get("success"):
-      return normalized_report
+        return normalized_report
 
-    detectors = raw_output.get("results", {}).get("detectors", [])
+    detectors = raw_output.get("raw", {}).get("results", {}).get("detectors", [])
 
     for detector in detectors:
         check = detector.get("check", "")

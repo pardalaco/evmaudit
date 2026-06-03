@@ -8,6 +8,20 @@ from typing import Dict, Any
 from evmaudit.exceptions import ToolNotFoundError, AnalysisError
 
 
+def detect_contract_name(contract_path: str) -> str | None:
+    """
+    Lee el .sol y devuelve el nombre del primer contrato declarado.
+    Evita el bug de usar el nombre del archivo cuando el contrato
+    se llama diferente (ej: contratov1.sol con 'contract VulnerableBank').
+    """
+    try:
+        code = Path(contract_path).read_text()
+    except FileNotFoundError:
+        return None
+    matches = re.findall(r'^(?:abstract\s+)?contract\s+(\w+)', code, re.MULTILINE)
+    return matches[0] if matches else Path(contract_path).stem
+
+
 def _set_solc_version(contract_path: str) -> str | None:
     """
     Detecta la versión de Solidity del pragma del contrato y configura
@@ -177,10 +191,18 @@ def run_slither(
     except json.JSONDecodeError as e:
         raise AnalysisError(f"No se pudo parsear JSON de Slither: {e}\nSTDERR: {stderr}")
 
+    result = {
+        "tool": "slither",
+        "contract_path": str(contract),
+        "success": proc.returncode in [0, 255],
+        "returncode": proc.returncode,
+        "raw": raw_json,
+        "stderr": stderr,
+    }
 
-    _save_json(raw_json, contract_path, "slither")
+    _save_json(result, contract_path, "slither")
 
-    return raw_json
+    return result
 
 
 def run_echidna(

@@ -1,29 +1,25 @@
-import sys
-import os
 import argparse
-sys.path.insert(0, "evmaudit/src")
-
-from evmaudit.runner import run_slither, run_mythril, run_echidna
+from evmaudit.runner import run_slither, run_mythril, run_echidna, detect_contract_name
 from evmaudit.normalizer import normalize_slither_output, normalize_mythril_output
 from evmaudit.correlator import correlate
 from evmaudit.echidna_adapter import generate as generate_echidna_wrapper
 from evmaudit.reporter import generate_report
 
 def main():
-    # Configuración de argumentos de línea de comandos
-    parser = argparse.ArgumentParser(description="Herramienta de auditoría automatizada para Smart Contracts.")
+    parser = argparse.ArgumentParser(description="EVMAudit — Analizador automatizado de vulnerabilidades en contratos inteligentes.")
     parser.add_argument("contract_path", help="Ruta al archivo .sol del contrato inteligente")
-    parser.add_argument("-n", "--name", help="Nombre del contrato (si difiere del nombre del archivo)")
-    
+    parser.add_argument("-n", "--name", help="Nombre del contrato (se detecta automáticamente si no se indica)")
+
     args = parser.parse_args()
 
     CONTRACT_PATH = args.contract_path
-    
-    # Si no se pasa el nombre, se extrae del nombre del archivo (ej: MultiVuln.sol -> MultiVuln)
+
+    # Detectar el nombre real del contrato desde el código fuente.
+    # Evita errores cuando el archivo se llama diferente al contrato (ej: contratov1.sol).
     if args.name:
         CONTRACT_NAME = args.name
     else:
-        CONTRACT_NAME = os.path.splitext(os.path.basename(CONTRACT_PATH))[0]
+        CONTRACT_NAME = detect_contract_name(CONTRACT_PATH)
 
     print(f"\n{'='*50}")
     print(f"   Analizando: {CONTRACT_PATH}")
