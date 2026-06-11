@@ -46,6 +46,24 @@ evmaudit/
 └── README.md                     # Este archivo
 ```
 
+## Aplicación web
+
+Existe una implementación web de este analizador donde puedes subir un contrato inteligente y obtener el análisis completo. El código fuente y el enlace al despliegue se encuentran en el repositorio [pardalaco/TFM-UNIR](https://github.com/pardalaco/TFM-UNIR), dentro de la carpeta [`webapp/`](https://github.com/pardalaco/TFM-UNIR/tree/main/webapp).
+
+## Documentación
+
+La carpeta [`docs/`](docs/) contiene documentación detallada de cada módulo:
+
+| Módulo | Descripción |
+|---|---|
+| [`runner.md`](docs/runner.md) | Ejecución de herramientas externas (Slither, Mythril, Echidna) |
+| [`normalizer.md`](docs/normalizer.md) | Normalización de salidas a formato común |
+| [`correlator.md`](docs/correlator.md) | Correlación de hallazgos entre herramientas |
+| [`swc_catalog.md`](docs/swc_catalog.md) | Catálogo de SWCs y plantillas Echidna |
+| [`echidna_adapter.md`](docs/echidna_adapter.md) | Generación de wrappers para fuzzing |
+| [`reporter.md`](docs/reporter.md) | Generación de informes JSON y Markdown |
+| [`exceptions.md`](docs/exceptions.md) | Excepciones personalizadas del pipeline |
+
 ## Desarrollado por
 
 Esta biblioteca fue desarrollada como parte del Trabajo Fin de Máster (TFM) en la Universidad Internacional de La Rioja (UNIR).
