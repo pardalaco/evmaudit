@@ -215,6 +215,7 @@ def run_echidna(
 
     Guarda el resultado en: jsons/{contrato}/{contrato}_echidna.json
     """
+    _set_solc_version(output_contract_path or contract_path)
     command = [
         "echidna",
         contract_path,
